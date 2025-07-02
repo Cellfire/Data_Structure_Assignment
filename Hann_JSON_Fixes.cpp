@@ -6,7 +6,7 @@ void exportDataToJSON(TransactionArray& array) {
     std::getline(std::cin, exportType);
 
     std::string jsonFile;
-    std::cout << "Enter filename (without extension): ";
+    std::cout << "Enter filename: ";
     std::getline(std::cin, jsonFile);
     if (jsonFile.size() < 5 || jsonFile.substr(jsonFile.size() - 5) != ".json") jsonFile += ".json";
     if (toLower(exportType) == "full") {
