@@ -536,7 +536,7 @@ public:
     }
 };
 
-void loadCSV(TransactionArray &array, TransactionList &fullList,
+int loadCSV(TransactionArray &array, TransactionList &fullList,
              TransactionList &cardList, TransactionList &achList,
              TransactionList &upiList, TransactionList &wireList,
              const std::string &filename)
@@ -545,7 +545,7 @@ void loadCSV(TransactionArray &array, TransactionList &fullList,
     if (!file)
     {
         std::cerr << "[ERROR] Failed to open file: " << filename << "\n";
-        return;
+        return false;
     }
 
     std::string line;
@@ -623,21 +623,21 @@ void loadCSV(TransactionArray &array, TransactionList &fullList,
               << ", Skipped: " << totalSkipped
               << ", Time: " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()
               << " seconds.\n";
+    return true;
 }
 
 void showMenu()
 {
     std::cout << "\n=== Transaction Manager ===\n";
-    std::cout << "1. Load CSV Data\n";
-    std::cout << "2. Payment channel sort\n";
-    std::cout << "3. Run Benchmark\n";
-    std::cout << "4. Sort Array by Location\n";
-    std::cout << "5. Sort Linked List by Location\n";
-    std::cout << "6. Search Transaction Type (Array)\n";
-    std::cout << "7. Search Transaction Type (List)\n";
-    std::cout << "8. Compare Performance (Array vs Linked List)\n";
-    std::cout << "9. Export to JSON\n";
-    std::cout << "10. Exit\n";
+    std::cout << "1. Payment channel sort\n";
+    std::cout << "2. Run Benchmark\n";
+    std::cout << "3. Sort Array by Location\n";
+    std::cout << "4. Search Transaction Type (Array)\n";
+    std::cout << "5. Search Transaction Type (List)\n";
+    std::cout << "6. Compare Performance (Array vs Linked List)\n";
+    std::cout << "7. Export to JSON\n";
+    std::cout << "8. Sort Linked List by Location\n";
+    std::cout << "9. Exit\n";
     std::cout << "Enter choice: ";
 }
 
@@ -859,6 +859,14 @@ int main()
     int choice;
     std::string filename;
 
+    std::cout << "Enter CSV filename: ";
+    std::getline(std::cin, filename);
+    if (!loadCSV(array, fullList, cardList, achList, upiList, wireList, filename)) {
+    std::cerr << "[FATAL] Failed to load data. Exiting...\n";
+    return 1;  // or return from main()
+}
+    std::cout << "[DEBUG] Array size after load: " << array.getSize() << "\n";
+
     do
     {
         showMenu();
@@ -868,12 +876,6 @@ int main()
         switch (choice)
         {
         case 1:
-            std::cout << "Enter CSV filename: ";
-            std::getline(std::cin, filename);
-            loadCSV(array, fullList, cardList, achList, upiList, wireList, filename);
-            std::cout << "[DEBUG] Array size after load: " << array.getSize() << "\n";
-            break;
-        case 2:
             std::cout << "\n-- Array Data --\n";
             array.print(20);
 
@@ -892,7 +894,7 @@ int main()
             std::cout << "\n-- Wire Transfer Transactions --\n";
             wireList.print(20);
             break;
-        case 3:
+        case 2:
             array.benchmarkOperation();
 
             std::cout << "Traversal benchmark (cardList): ";
@@ -907,13 +909,13 @@ int main()
             std::cout << "Traversal benchmark (wireList): ";
             wireList.benchmarkOperation();
             break;
-        case 4:
+        case 3:
             std::cout << "[DEBUG] Running Option 4: Sorting now...\n";
             array.sortByLocation();
             std::cout << "[DEBUG] Sort complete, printing first 20...\n";
             array.print(20);
             break;
-        case 5:
+        case 4:
         {
             std::cout << "[DEBUG] Sorting Linked List by location...\n";
             fullList.sortByLocation();
@@ -921,7 +923,7 @@ int main()
             fullList.print();
             break;
         }
-        case 6:
+        case 5:
         {
             std::string type;
             std::cout << "Enter transaction type to search (array): ";
@@ -930,7 +932,7 @@ int main()
             array.binarySearchTransactionType(type);
             break;
         }
-        case 7:
+        case 6:
         {
             std::string type;
             std::cout << "Enter transaction type to search (list): ";
@@ -939,7 +941,7 @@ int main()
             fullList.jumpSearchTransactionType(type);
             break;
         }
-        case 8:
+        case 7:
         {
             std::cout << "\n=== PERFORMANCE COMPARISON ===\n";
 
@@ -983,13 +985,13 @@ int main()
             break;
         }
 
-        case 9:
+        case 8:
         {
             exportCustomJSON(array, fullList);
             break;
         }
 
-        case 10:
+        case 9:
         {
             std::cout << "Exiting program.\n";
             break;
@@ -998,7 +1000,7 @@ int main()
         default:
             std::cout << "Invalid choice.\n";
         }
-    } while (choice != 10);
+    } while (choice != 9);
 
     return 0;
 }
