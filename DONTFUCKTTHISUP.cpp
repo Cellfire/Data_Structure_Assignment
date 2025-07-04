@@ -910,15 +910,17 @@ int main()
             wireList.benchmarkOperation();
             break;
         case 3:
-            std::cout << "[DEBUG] Sorting Linked List by location...\n";
-            fullList.sortByLocation();
+            std::cout << "[DEBUG] Running Option 4: Sorting now...\n";
+            array.sortByLocation();
             std::cout << "[DEBUG] Sort complete, printing first 20...\n";
-            fullList.print();
+            array.print(100);
             break;
         case 4:
         {
+            std::cout << "[DEBUG] Sorting Linked List by location...\n";
             fullList.sortByLocation();
-            fullList.print();            
+            std::cout << "[DEBUG] Sort complete, printing first 20...\n";
+            fullList.print(100);
             break;
         }
         case 5:
