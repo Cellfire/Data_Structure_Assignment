@@ -5,12 +5,25 @@
 #include <chrono>
 #include <iomanip>
 #include "json.hpp"
+#include <set>
 
-#define MAX_TRANSACTIONS 10000
-#define MAX_TOTAL_RECORDS 10000
-#define MAX_LIST_LIMIT 10000
+#define MAX_TRANSACTIONS 4000
+#define MAX_TOTAL_RECORDS 4000
+#define MAX_LIST_LIMIT 4000
 
 using json = nlohmann::json;
+
+// Struct to hold benchmark results
+struct BenchmarkResults {
+    long long arraySortTime = -1;
+    long long listSortTime = -1;
+    long long arraySearchTime = -1;
+    long long listSearchTime = -1;
+};
+
+// Declare global variable to store benchmark results from Option 2
+BenchmarkResults benchmark;
+
 
 std::string toLower(const std::string &str)
 {
@@ -195,23 +208,9 @@ public:
         std::cout << "[INFO] Linked List sorted by location (ascending) using MergeSort.\n";
         std::cout << "[DEBUG] Sort time: "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-                  << " ms\n";
+                  << " ms\n\n";
     }
 
-    void benchmarkOperation() const
-    {
-        auto start = std::chrono::high_resolution_clock::now();
-        Node *temp = head;
-        while (temp)
-        {
-            volatile double x = temp->data->amount * 2.0;
-            temp = temp->next;
-        }
-        auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Traversal benchmark (Linked List): "
-                  << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()
-                  << " ns\n";
-    }
 
     void jumpSearchTransactionType(const std::string &type) const
     {
@@ -852,6 +851,73 @@ size_t estimateListMemory(const TransactionList &list)
     return total;
 }
 
+void runSortBenchmark(TransactionArray &array, TransactionList &fullList)
+{
+    std::cout << "\nRUNTIME CALCULATION\n\n";
+
+    //____________LOCATION_____________________________
+
+
+    //SORT BY LOCATION (ARRAY)
+    auto startArraySort = std::chrono::high_resolution_clock::now();
+    array.sortByLocation();
+    auto endArraySort = std::chrono::high_resolution_clock::now();
+    auto arraySortTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endArraySort - startArraySort).count();
+
+    //SORT BY LOCATION (LINKED LIST)
+    auto startListSort = std::chrono::high_resolution_clock::now();
+    fullList.sortByLocation();
+    auto endListSort = std::chrono::high_resolution_clock::now();
+    auto listSortTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endListSort - startListSort).count();
+
+    //_________________TRANSACTION TYPE_______________________/
+
+
+    //COLLECT UNIQUE TRANSACTION TYPES
+    std::set<std::string> uniqueTypes;
+    for (int i = 0; i < array.getSize(); ++i)
+    {
+        uniqueTypes.insert(toLower(array.getData()[i]->transaction_type));
+    }
+
+    //MEASURE TOTAL SEARCH TIME FOR ALL TYPES (ARRAY) 
+    long long totalArraySearchTime = 0;
+    for (const std::string &type : uniqueTypes)
+    {
+        auto start = std::chrono::high_resolution_clock::now();
+        array.benchmarkSearch(type);
+        auto end = std::chrono::high_resolution_clock::now();
+        totalArraySearchTime += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    }
+
+    //MEASURE TOTAL SEARCH TIME FOR ALL TYPES (LINKED LIST)
+    long long totalListSearchTime = 0;
+    for (const std::string &type : uniqueTypes)
+    {
+        auto start = std::chrono::high_resolution_clock::now();
+        fullList.benchmarkSearch(type);
+        auto end = std::chrono::high_resolution_clock::now();
+        totalListSearchTime += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    }
+
+    //PRINT OUTPUT
+    std::cout << "[ ARRAY ]\n";
+    std::cout << "Searching (transaction type) : " << totalArraySearchTime << " ns\n";
+    std::cout << "Sorting ( location ) : " << arraySortTime << " ns\n\n";
+
+    std::cout << "[ LINKEDLIST ]\n";
+    std::cout << "Searching (transaction type ) : " << totalListSearchTime << " ns\n";
+    std::cout << "Sorting  ( location ) : " << listSortTime << " ns\n";
+
+    //store results for option 7
+    benchmark.arraySortTime = arraySortTime;
+    benchmark.listSortTime = listSortTime;
+    benchmark.arraySearchTime = totalArraySearchTime;
+    benchmark.listSearchTime = totalListSearchTime;
+
+
+}
+
 int main()
 {
     TransactionArray array;
@@ -895,19 +961,11 @@ int main()
             wireList.print(20);
             break;
         case 2:
-            array.benchmarkOperation();
+            {
+                runSortBenchmark(array, fullList);
+                break;
+            }
 
-            std::cout << "Traversal benchmark (cardList): ";
-            cardList.benchmarkOperation();
-
-            std::cout << "Traversal benchmark (achList): ";
-            achList.benchmarkOperation();
-
-            std::cout << "Traversal benchmark (upiList): ";
-            upiList.benchmarkOperation();
-
-            std::cout << "Traversal benchmark (wireList): ";
-            wireList.benchmarkOperation();
             break;
         case 3:
             std::cout << "[DEBUG] Running Option 4: Sorting now...\n";
@@ -945,44 +1003,38 @@ int main()
         }
         case 7:
         {
-                        std::cout << "\n=== PERFORMANCE COMPARISON ===\n";
+            if (benchmark.arraySortTime == -1 || benchmark.listSortTime == -1)
+            {
+                std::cout << "[INFO] Please run Option 2 (Benchmark) first to compare performance.\n";
+                break;
+            }
 
-            auto startArray = std::chrono::high_resolution_clock::now();
-            array.benchmarkOperation();
-            auto endArray = std::chrono::high_resolution_clock::now();
+            std::cout << "\n=== PERFORMANCE COMPARISON ===\n";
 
-            auto startList = std::chrono::high_resolution_clock::now();
-            fullList.benchmarkOperation();
-            auto endList = std::chrono::high_resolution_clock::now();
+            std::cout << "[ ARRAY ]\n";
+            std::cout << "Sorting Time (location)               : " << benchmark.arraySortTime << " ns\n";
+            std::cout << "Searching Time (transaction type)     : " << benchmark.arraySearchTime << " ns\n\n";
 
-            size_t arrayMem = estimateArrayMemory(array);
-            size_t listMem = estimateListMemory(fullList);
+            std::cout << "[ LINKED LIST ]\n";
+            std::cout << "Sorting Time (location)               : " << benchmark.listSortTime << " ns\n";
+            std::cout << "Searching Time (transaction type)     : " << benchmark.listSearchTime << " ns\n\n";
 
-            std::cout << "\n=== MEMORY USAGE ===\n";
-            std::cout << "Array Memory Usage: " << arrayMem / 1024.0 << " KB\n";
-            std::cout << "List  Memory Usage: " << listMem / 1024.0 << " KB\n";
+            std::cout << ">>> SORTING: ";
+                if (benchmark.arraySortTime < benchmark.listSortTime)
+                    std::cout << "Array is faster for sorting by location.\n";
+                        else if (benchmark.listSortTime < benchmark.arraySortTime)
+                    std::cout << "Linked List is faster for sorting by location.\n";
+                    else
+                    std::cout << "Both are equally fast for sorting.\n";
 
-            std::cout << "\n=== SORT BENCHMARK ===\n";
-            auto startASort = std::chrono::high_resolution_clock::now();
-            array.sortByLocation();
-            auto endASort = std::chrono::high_resolution_clock::now();
-            auto arraySortTime = std::chrono::duration_cast<std::chrono::microseconds>(endASort - startASort).count();
+            std::cout << ">>> SEARCHING: ";
+                if (benchmark.arraySearchTime < benchmark.listSearchTime)
+            std::cout << "Array is faster for searching transaction types.\n";
+                else if (benchmark.listSearchTime < benchmark.arraySearchTime)
+            std::cout << "Linked List is faster for searching transaction types.\n";
+                else
+                std::cout << "Both are equally fast for searching.\n";
 
-            auto startLSort = std::chrono::high_resolution_clock::now();
-            fullList.sortByLocation();
-            auto endLSort = std::chrono::high_resolution_clock::now();
-            auto listSortTime = std::chrono::duration_cast<std::chrono::microseconds>(endLSort - startLSort).count();
-
-            std::cout << "Array Sort Time: " << arraySortTime << " µs\n";
-            std::cout << "List  Sort Time: " << listSortTime << " µs\n";
-
-            std::cout << "\n=== SEARCH BENCHMARK ===\n";
-            std::string sampleSearch = "card"; // or another known type in your data
-            auto arraySearchTime = array.benchmarkSearch(sampleSearch);
-            auto listSearchTime = fullList.benchmarkSearch(sampleSearch);
-
-            std::cout << "Array Search Time ('" << sampleSearch << "'): " << arraySearchTime << " µs\n";
-            std::cout << "List  Search Time ('" << sampleSearch << "'): " << listSearchTime << " µs\n";
 
             break;
         }
