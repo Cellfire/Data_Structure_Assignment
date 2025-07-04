@@ -916,6 +916,8 @@ void runSortBenchmark(TransactionArray &array, TransactionList &fullList)
     benchmark.listSearchTime = totalListSearchTime;
 
 
+
+
 }
 
 int main()
@@ -1009,6 +1011,11 @@ int main()
                 break;
             }
 
+            
+            // MEMORY USAGE COMPARISON
+            size_t arrayMemory = estimateArrayMemory(array);
+            size_t listMemory = estimateListMemory(fullList);
+
             std::cout << "\n=== PERFORMANCE COMPARISON ===\n";
 
             std::cout << "[ ARRAY ]\n";
@@ -1034,6 +1041,19 @@ int main()
             std::cout << "Linked List is faster for searching transaction types.\n";
                 else
                 std::cout << "Both are equally fast for searching.\n";
+
+
+            std::cout << "\nARRAY Memory Usage      : " << arrayMemory << " bytes\n";
+            std::cout << "LINKED LIST Memory Usage: " << listMemory << " bytes\n\n";
+
+            std::cout << ">>> MEMORY: ";  
+                if (arrayMemory < listMemory)
+            std::cout << "Array uses less memory.\n";
+                else if (listMemory < arrayMemory)
+            std::cout << "Linked List uses less memory.\n";
+                else
+            std::cout << "Both use equal memory.\n";
+
 
 
             break;
