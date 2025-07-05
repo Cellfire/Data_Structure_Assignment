@@ -205,10 +205,7 @@ public:
         auto start = std::chrono::high_resolution_clock::now();
         mergeSort(&head);
         auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "[INFO] Linked List sorted by location (ascending) using MergeSort.\n";
-        std::cout << "[DEBUG] Sort time: "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-                  << " ms\n\n";
+
     }
 
 
@@ -488,10 +485,6 @@ public:
         quickSort(0, size - 1);
         auto end = std::chrono::high_resolution_clock::now();
 
-        std::cout << "[INFO] Sorted by location (ascending) using QuickSort.\n";
-        std::cout << "[DEBUG] Sort time: "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-                  << " ms\n";
     }
 
     void searchTransactionType(const std::string &type) const
