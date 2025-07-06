@@ -7,9 +7,9 @@
 #include "json.hpp"
 #include <set>
 
-#define MAX_TRANSACTIONS 4000
-#define MAX_TOTAL_RECORDS 4000
-#define MAX_LIST_LIMIT 4000
+#define MAX_TRANSACTIONS 10000
+#define MAX_TOTAL_RECORDS 10000
+#define MAX_LIST_LIMIT 10000
 
 using json = nlohmann::json;
 
